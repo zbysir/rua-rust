@@ -15,9 +15,17 @@ mod schema;
 // mod schema_lib;
 // use schema_lib::*;
 
+use schema::person;
+
 #[derive(Queryable, Debug)]
 pub struct People {
     pub id: i32,
+    pub name: String,
+}
+
+#[derive(Insertable)]
+#[table_name="person"]
+pub struct NewPeople {
     pub name: String,
 }
 
@@ -30,7 +38,16 @@ fn main() {
             exit(1)
         }
     };
-    let chocolate = schema::person::dsl::person.limit(5).load::<People>(&db).unwrap();
+    let mut new_people = NewPeople {
+        name: "13".to_string(),
+    };
+
+    diesel::insert_into(schema::person::table)
+        .values(&new_people)
+        .execute(&db)
+        .expect("Error saving new post");
+
+    let chocolate = schema::person::dsl::person.load::<People>(&db).unwrap();
 
     println!("Found person {:?}", chocolate);
 }
