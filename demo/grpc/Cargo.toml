@@ -1,0 +1,11 @@
+[package]
+name = "grpc"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+postgres="*"
+diesel = { version = "*", features = ["postgres"] }

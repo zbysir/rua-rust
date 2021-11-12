@@ -24,7 +24,7 @@ pub struct People {
 }
 
 #[derive(Insertable)]
-#[table_name="person"]
+#[table_name = "person"]
 pub struct NewPeople {
     pub name: String,
 }
@@ -38,7 +38,7 @@ fn main() {
             exit(1)
         }
     };
-    let mut new_people = NewPeople {
+    let new_people = NewPeople {
         name: "13".to_string(),
     };
 
