@@ -52,7 +52,7 @@ mod test{
     // 返回 Result 枚举
     #[test]
     fn json() -> Result<(), Error>{
-        let f = match File::open("src/sample.json") {
+        let f = match File::open("../sample.json") {
             Ok(f) =>  f,
             Err(e) => {
                 return Err(e);
