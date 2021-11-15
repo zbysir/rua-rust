@@ -3,9 +3,23 @@ name = "grpc"
 version = "0.1.0"
 edition = "2018"
 
+
+[[bin]] # Bin to run the HelloWorld gRPC server
+name = "server"
+path = "src/server.rs"
+
+[[bin]] # Bin to run the HelloWorld gRPC server
+name = "buildx"
+path = "src/build.rs"
+
+[[bin]] # Bin to run the HelloWorld gRPC client
+name = "client"
+path = "src/client.rs"
+
 [dependencies]
-serde = "*"
-serde_derive = "*"
-serde_json = "*"
-postgres="*"
-diesel = { version = "*", features = ["postgres"] }
+tonic = "0.6"
+prost = "0.9"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+
+[build-dependencies]
+tonic-build = "0.6.0"
