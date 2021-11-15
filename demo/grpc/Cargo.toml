@@ -3,14 +3,9 @@ name = "grpc"
 version = "0.1.0"
 edition = "2018"
 
-
 [[bin]] # Bin to run the HelloWorld gRPC server
 name = "server"
 path = "src/server.rs"
-
-[[bin]] # Bin to run the HelloWorld gRPC server
-name = "buildx"
-path = "src/build.rs"
 
 [[bin]] # Bin to run the HelloWorld gRPC client
 name = "client"
