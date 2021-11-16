@@ -32,11 +32,11 @@ async fn listen() {
         )
         .build();
 
-    // handle term signal
+    // handle term signal to graceful shutdown
     let (mut tx, mut rx) = mpsc::channel::<u32>(1);
+    // https://docs.rs/signal-hook/0.3.10/signal_hook/
     let mut signals = Signals::new(signal_hook::consts::TERM_SIGNALS).unwrap();
     tokio::spawn(async move {
-        // https://docs.rs/signal-hook/0.3.10/signal_hook/
         for sig in signals.forever() {
             println!("Received signal {:?}", sig);
 
