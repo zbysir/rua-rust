@@ -1,6 +1,5 @@
 use structopt::StructOpt;
 
-/// Example for allowing to specify options via environment variables.
 #[derive(StructOpt, Debug)]
 #[structopt(name = "env")]
 struct Opt {
@@ -13,8 +12,8 @@ struct Opt {
     // The default value is used if neither argument nor environment
     // variable is specified.
     /// Number of retries
-    #[structopt(long, env = "RETRIES", default_value = "5")]
-    retries: u32,
+    #[structopt(long, env = "RETRIES")]
+    retries: Option<u32>,
 }
 
 // RETRIES=1 cargo run -- --api-url=123
