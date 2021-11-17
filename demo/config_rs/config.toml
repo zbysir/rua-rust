@@ -1,0 +1,4 @@
+debug = false
+
+[database]
+url = "123"
