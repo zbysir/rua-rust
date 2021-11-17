@@ -27,7 +27,7 @@ struct Address {
 mod test{
     use std::fs::File;
     use std::io::Error;
-    use crate::{ Person};
+    use crate::{ Person, Address};
 
     // 返回 Result 枚举
     #[test]
@@ -39,6 +39,16 @@ mod test{
             }
         };
         let v: Person = serde_json::from_reader(f)?;
+        println!("{:?}", v);
+        return Ok(())
+    }
+    #[test]
+    fn to_json() -> Result<(), Error>{
+        let p =  Address{
+            street:"1".to_string(),
+            city:"1".to_string(),
+        };
+        let v = serde_json::to_string(&p)?;
         println!("{:?}", v);
         return Ok(())
     }

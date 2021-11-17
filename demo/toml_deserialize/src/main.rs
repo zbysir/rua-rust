@@ -4,6 +4,7 @@ use serde_derive::Deserialize;
 
 #[derive(Debug)]
 #[derive(Deserialize)]
+#[derive(Default)]
 struct Opt {
     api_url: String,
 
@@ -16,11 +17,14 @@ fn main() {
         Ok(f) => f,
         Err(e) => panic!("no such file {} exception:{}", file_path, e)
     };
-    let mut str_val = String::new();
-    match file.read_to_string(&mut str_val) {
-        Ok(s) => s,
-        Err(e) => panic!("Error Reading file: {}", e)
-    };
-    let config: Opt = toml::from_str(&str_val).unwrap();
+    let mut config: Opt = Opt::default();
+    {
+        let mut str_val = String::new();
+        match file.read_to_string(&mut str_val) {
+            Ok(s) => s,
+            Err(e) => panic!("Error Reading file: {}", e)
+        };
+        config = toml::from_str(&str_val).unwrap();
+    }
     println!("{:#?}", config);
 }
