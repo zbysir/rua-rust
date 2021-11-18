@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 #[macro_use]
 extern crate serde_derive;
 
@@ -39,11 +37,8 @@ fn main() {
     let b: AddressFull = get_into().unwrap();
     println!("get_into: {:?}", b);
 
-    println!("get_max: {:?}", get_max("b", "c"));
-    println!("get_default: {:?}", get_default(""));
-    // println!("get_into: {:?}", get_into());
+    println!("c.get_str :{:?}", get_str(&mut c));
 
-    println!("c.get_str :{:?}", get_str(&mut c))
 }
 
 fn fetch_an_integer() -> redis::RedisResult<isize> {
@@ -93,16 +88,4 @@ fn get_into2<T: for<'a> serde::Deserialize<'a>>() -> redis::RedisResult<T>
     let k: T = serde_json::from_str(&x).unwrap();
 
     Ok(k)
-}
-
-// 探索生命周期
-fn get_max<'a>(a: &'a str, b: &'a str) -> &'a str {
-    if a > b { a } else { b }
-}
-
-
-// 探索生命周期
-fn get_default(a: &str) -> Cow<str> {
-    let x = String::from("a");
-    if a == "" { Cow::Owned(x) } else { Cow::Borrowed(a) }
 }
