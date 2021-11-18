@@ -22,6 +22,8 @@ struct AddressFull {
     num: String,
 }
 
+mod redis_cli;
+
 
 fn main() {
     let mut c = conn("redis://127.0.0.1/");
@@ -37,8 +39,12 @@ fn main() {
     let b: AddressFull = get_into().unwrap();
     println!("get_into: {:?}", b);
 
-    println!("c.get_str :{:?}", get_str(&mut c));
+    println!("c.get_str: {:?}", get_str(&mut c));
 
+    let cli = redis_cli::RedisCli::open("redis://127.0.0.1/").unwrap();
+
+    let c: Address = cli.get("my_key").unwrap();
+    println!("cli.get: {:?}", c);
 }
 
 fn fetch_an_integer() -> redis::RedisResult<isize> {
