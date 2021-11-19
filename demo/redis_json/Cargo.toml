@@ -6,7 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-redis = "0.21.4"
+redis = { version = "0.21.4", features = ["tokio-comp"] }
 serde = "1.0.104"
 serde_derive = "1.0.104"
 serde_json = "*"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+r2d2_redis = "0.14.0"

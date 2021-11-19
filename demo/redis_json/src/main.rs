@@ -24,8 +24,8 @@ struct AddressFull {
 
 mod redis_cli;
 
-
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut c = conn("redis://127.0.0.1/");
 
     let a = Address {
@@ -43,7 +43,7 @@ fn main() {
 
     let cli = redis_cli::RedisCli::open("redis://127.0.0.1/").unwrap();
 
-    let c: Address = cli.get("my_key").unwrap();
+    let c: Address = cli.get("my_key").await.unwrap();
     println!("cli.get: {:?}", c);
 }
 
