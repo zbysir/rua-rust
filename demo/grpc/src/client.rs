@@ -1,4 +1,4 @@
-use hello_world::greeter_client::GreeterClient;
+use hello_world::job_client::JobClient;
 use hello_world::HelloRequest;
 
 pub mod hello_world {
@@ -7,13 +7,13 @@ pub mod hello_world {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = GreeterClient::connect("http://[::1]:50051").await?;
+    let mut client = JobClient::connect("http://localhost:50051").await?;
 
     let request = tonic::Request::new(HelloRequest {
         name: "Tonic".into(),
     });
 
-    let response = client.say_hello(request).await?;
+    let response = client.trigger_create_rebate(request).await?;
 
     println!("RESPONSE={:?}", response);
 

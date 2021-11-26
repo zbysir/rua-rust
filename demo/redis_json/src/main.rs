@@ -1,9 +1,12 @@
+#![feature(test)]
+
 #[macro_use]
 extern crate serde_derive;
 
 extern crate redis;
 
 use redis::Commands;
+use redis::AsyncCommands;
 
 use serde_derive::Serialize;
 
@@ -34,6 +37,7 @@ async fn main() {
     };
 
     println!("fetch_an_integer: {:?}", fetch_an_integer());
+    println!("fetch_with_multiplexed_connect: {:?}", fetch_with_multiplexed_connect().await);
 
     println!("set_into: {:?}", set_into(&mut c, a));
     let b: AddressFull = get_into().unwrap();
@@ -41,10 +45,9 @@ async fn main() {
 
     println!("c.get_str: {:?}", get_str(&mut c));
 
-    let cli = redis_cli::RedisCli::open("redis://127.0.0.1/").unwrap();
-
+    let cli = redis_cli::RedisCliPool::open("redis://127.0.0.1/").unwrap();
     let c: Address = cli.get("my_key").await.unwrap();
-    println!("cli.get: {:?}", c);
+    println!("cliPool.get: {:?}", c);
 }
 
 fn fetch_an_integer() -> redis::RedisResult<isize> {
@@ -52,6 +55,16 @@ fn fetch_an_integer() -> redis::RedisResult<isize> {
     let mut con = client.get_connection()?;
     let _: () = con.set("my_key", 42)?;
     con.get("my_key")
+}
+
+async fn fetch_with_multiplexed_connect() -> redis::RedisResult<isize> {
+    let client = redis::Client::open("redis://127.0.0.1/")?;
+    let mut conn = client.get_multiplexed_async_connection().await?;
+    let mut cmd = redis::Cmd::new();
+
+    let _: () = cmd.arg("SET").arg("my_key").arg(42).query_async(&mut conn).await.unwrap();
+
+    conn.get("my_key").await
 }
 
 fn set_into<T: serde::ser::Serialize>(con: &mut redis::Connection, x: T) -> redis::RedisResult<()>
