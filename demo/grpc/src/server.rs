@@ -107,16 +107,10 @@ use lib::jsonrpc;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::]:50051".parse()?;
-    let greeter = MyGreeter::default();
-    let mut s = JobServer::new(greeter);
-    let json = jsonrpc::JsonRpc {};
-    let mp = s.export();
+    // let greeter = ;
+    let mut s = JobServer::new(MyGreeter::default());
 
-    let mut x = mp.get("x").unwrap().as_ref().clone();
-    let b: tonic::Response<HelloReply> = (&x).call(tonic::Request::new(HelloRequest {
-        name: "1444".to_string()
-    })).await.unwrap();
-    println!("b: {:?}", b);
+    let json = jsonrpc::JsonRpc::new(s.clone());
 
     Server::builder()
         .accept_http1(true)
@@ -125,32 +119,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .serve(addr)
         .await?;
 
+
     Ok(())
 }
 
 use std::collections::HashMap;
 use std::future::Future;
+use std::sync::Arc;
+use serde::Serialize;
 
 pub trait Caller<Req, Rsp> {
     fn call(&self, req: tonic::Request<Req>) -> BoxFuture<tonic::Response<Rsp>, tonic::Status>;
-}
-
-impl<T: Job> JobServer<T> {
-    pub fn export(&mut self) -> HashMap<&str, Box<dyn Caller<HelloRequest, HelloReply>>> {
-        let mut x: HashMap<&str, Box<dyn Caller<HelloRequest, HelloReply>>> = HashMap::new();
-        // #[derive(Clone)]
-        struct TriggerCreateRebateSvc<T: Job>(pub std::sync::Arc<T>);
-        impl<T: Job> Caller<HelloRequest, HelloReply> for TriggerCreateRebateSvc<T> {
-            fn call(&self, request: Request<HelloRequest>) -> BoxFuture<Response<HelloReply>, Status> {
-                let inner = self.0.clone();
-                let fut = async move { (*inner).trigger_create_rebate(request).await };
-                Box::pin(fut)
-            }
-        }
-
-        let inner = self.inner.clone();
-        let inner = inner.0;
-        x.insert("x", Box::new(TriggerCreateRebateSvc(inner)));
-        x
-    }
 }

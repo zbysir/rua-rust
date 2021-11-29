@@ -16,9 +16,10 @@ path = "src/client.rs"
 tonic = {path = "/Users/bysir/.cargo/registry/src/github.com-1ecc6299db9ec823/tonic-0.6.1"}
 prost = "0.9"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+hyper = "*"
 serde = "1.0.104"
 serde_derive = "1.0.104"
-serde_json = "*"
+serde_json = { version = "1.0", features = ["raw_value"] }
 
 [build-dependencies]
 tonic-build = { path = "lib/tonic-build-0.6.0"}
