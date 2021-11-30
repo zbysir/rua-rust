@@ -48,6 +48,7 @@ pub fn compile_protos(proto: impl AsRef<Path>) -> io::Result<()> {
     Ok(())
 }
 
+// const PROST_CODEC_PATH: &str = "tonic::codec::ProstCodec";
 const PROST_CODEC_PATH: &str = "crate::JsonCodec";
 
 /// Non-path Rust types allowed for request/response types.

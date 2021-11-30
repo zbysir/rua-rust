@@ -114,7 +114,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Server::builder()
         .accept_http1(true)
-        .add_service(json)
+        // .add_service(json)
         .add_service(s)
         .serve(addr)
         .await?;

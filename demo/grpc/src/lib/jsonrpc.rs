@@ -6,19 +6,16 @@ use hyper;
 use hyper::body::Bytes;
 
 pub struct JsonRpc<S> {
-    // 当前 server
-    server: S,
-    // 判断当前 server 是否满足执行
-    // dyn Future<Output=bool>
-    attch: Arc<dyn (Fn(&Request<Body>) -> bool) + Send + Sync+ 'static>,
-    // 如果当前 server 无法满足，则执行 next
-    next: Option<Arc<Self>>,
+    servers: Vec<S>,
 }
+
+use std::fmt::Debug;
 
 impl<S> tonic::codegen::Service<tonic::codegen::http::Request<Body>> for JsonRpc<S>
     where
         S: tonic::codegen::Service<tonic::codegen::http::Request<Body>, Response=tonic::codegen::http::Response<tonic::body::BoxBody>> + Clone + Send + 'static,
         S::Future: Send + 'static,
+        S::Error: Into<StdError> + Send + 'static + Debug,
 {
     type Response = tonic::codegen::http::Response<tonic::body::BoxBody>;
     type Error = tonic::codegen::Never;
@@ -29,26 +26,73 @@ impl<S> tonic::codegen::Service<tonic::codegen::http::Request<Body>> for JsonRpc
     }
 
     fn call(&mut self, req: tonic::codegen::http::Request<Body>) -> Self::Future {
+        let mut s = self.servers[0].clone();
         Box::pin(async move {
-            // println!("self.attch: {:?}", (*self.attch)(&req).await);
+            let body = req.into_body();
+            let bytes: Bytes = hyper::body::to_bytes(body).await.unwrap();
+            let json_req: JsonRpcReq = serde_json::from_slice(bytes.as_ref()).unwrap();
+
+            let p = json_req.params[0].get();
+            let mut paramsStr = "\x00\x00\x00\x00".to_string();
+            let l = p.len();
+            paramsStr.push(if l > u8::MAX as usize { 0 } else { l as u8 } as char);
+            paramsStr.push_str(&p.to_string());
+            println!("req: {:?}", paramsStr);
+
+            let request: tonic::codegen::http::Request<tonic::transport::Body> = tonic::codegen::http::Request::builder()
+                .method("GET")
+                .uri("/helloworld.Job/TriggerCreateRebate")
+                .header("X-Custom-Foo", "Bar")
+                .body(tonic::transport::Body::from(paramsStr))
+                .unwrap();
+
+            let response = (s).call(request).await;
+            let r: tonic::codegen::http::Response<tonic::body::BoxBody> = response.unwrap();
+            let body = r.into_body();
+            let bytes: Bytes = hyper::body::to_bytes(body).await.unwrap();
+            let mut bytes:Bytes = bytes.slice(5..);
+
+            println!("rsp: {:?}", bytes);
+            use http_body::Body;
+
+            use std::str;
+            let mut string:String =str::from_utf8(bytes.as_ref()).unwrap().into();
+            let rsp_json =  serde_json::to_string(&JsonRpcRsp{
+                id: json_req.id,
+                result: serde_json::value::RawValue::from_string(string).unwrap()
+            }).unwrap();
+
+            println!("rsp_json: {:?}", rsp_json);
+
+            let rspBody = http_body::combinators::UnsyncBoxBody::new(tonic::transport::Body::from(rsp_json).
+                map_err(|err| tonic::Status::ok("44")));
 
             Ok(tonic::codegen::http::Response::builder()
                 .status(200)
-                .header("grpc-status", "100")
-                .header("content-type", "application/grpc")
-                .body(tonic::body::BoxBody::default())
+                .header("grpc-status", "0")
+                .header("content-type", "application/json")
+                .body(rspBody)
                 .unwrap())
         })
     }
 }
 
 use serde_derive::Deserialize;
+use serde_derive::Serialize;
 use tonic::codegen::http::Request;
+use tonic::codegen::StdError;
 
 #[derive(Debug, Deserialize)]
 struct JsonRpcReq {
     method: String,
-    params: Box<serde_json::value::RawValue>,
+    params: Vec<Box<serde_json::value::RawValue>>,
+    id : String,
+}
+
+#[derive(Debug, Serialize)]
+struct JsonRpcRsp {
+    result: Box<serde_json::value::RawValue>,
+    id : String,
 }
 
 impl<S, > JsonRpc<S>
@@ -67,26 +111,10 @@ impl<S, > JsonRpc<S>
         let svc_route = format!("/{}", svc_name);
         println!("svc_route: {:?}", svc_route);
 
-        // let pred = move |req: &tonic::codegen::http::Request<Body>| async {
-        //     let body: Body = req.into_body();
-        //     let bytes: Bytes = hyper::body::to_bytes(body).await.unwrap();
-        //     let json_req: JsonRpcReq = serde_json::from_reader(bytes.reader()).unwrap();
-        //
-        //     println!("req: {:?}", json_req);
-        //     true
-        // };
-        let pred= move|req: &Request<Body>| {
-                let body = req.body();
-                // let bytes: Bytes = hyper::body::to_bytes(body).await.unwrap();
-                // let json_req: JsonRpcReq = serde_json::from_reader(bytes).unwrap();
-                // println!("json_req: {:?}", bytes);
-                println!("req: {:?}", req);
-                true
-        };
+        let mut x = Vec::new();
+        x.push(svc);
         JsonRpc {
-            server: svc,
-            attch: Arc::new(pred),
-            next: None,
+            servers: x
         }
     }
     // pub fn add_service(self, svc: S) -> Self
@@ -126,9 +154,7 @@ impl<S> Clone for JsonRpc<S>
 {
     fn clone(&self) -> Self {
         Self {
-            attch: self.attch.clone(),
-            server: self.server.clone(),
-            next: self.next.clone(),
+            servers: self.servers.clone(),
         }
     }
 }
