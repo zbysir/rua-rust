@@ -6,35 +6,62 @@ import (
 	grpccli "git.5th.im/lb-public/gear/micro-kit/client/grpc"
 	"github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/codec"
+	"google.golang.org/grpc"
 	"time"
 )
+
+var _ time.Time
+var _ client.Client
 
 func main() {
 	grpccli.RegisterCodecs()
 
-	//{
-	//	conn, err := grpc.Dial(":50051", grpc.WithInsecure(), grpc.WithDefaultCallOptions(grpc.CallContentSubtype("json")))
-	//	if err != nil {
-	//		fmt.Printf("连接服务端失败: %s", err)
-	//		return
-	//	}
-	//	defer conn.Close()
-	//	var i interface{}
-	//
-	//	err = conn.Invoke(context.Background(), "/helloworld.Job/TriggerCreateRebate", map[string]string{"name": "222"}, &i)
-	//	if err != nil {
-	//		fmt.Printf("Invoke: %s\n", err)
-	//		return
-	//	}
-	//
-	//	fmt.Printf("ok %+v\n", i)
-	//}
-	//return
+	// call with json
+	{
+		conn, err := grpc.Dial(":50051", grpc.WithInsecure(), grpc.WithDefaultCallOptions(grpc.CallContentSubtype("json")))
+		if err != nil {
+			fmt.Printf("连接服务端失败: %s", err)
+			return
+		}
+		defer conn.Close()
+		var i interface{}
+
+		err = conn.Invoke(context.Background(), "/helloworld.Job/TriggerCreateRebate", map[string]string{"name": "from json"}, &i)
+		if err != nil {
+			fmt.Printf("Invoke: %s\n", err)
+			return
+		}
+
+		fmt.Printf("ok %+v\n", i)
+	}
+
+	// call with proto
+	{
+		conn, err := grpc.Dial(":50051", grpc.WithInsecure(), grpc.WithDefaultCallOptions())
+		if err != nil {
+			fmt.Printf("连接服务端失败: %s", err)
+			return
+		}
+		defer conn.Close()
+		var i HelloReply
+
+		err = conn.Invoke(context.Background(), "/helloworld.Job/TriggerCreateRebate", &HelloRequest{
+			Name: "from proto",
+		}, &i)
+		if err != nil {
+			fmt.Printf("Invoke: %s\n", err)
+			return
+		}
+
+		fmt.Printf("ok %+v\n", i)
+	}
+
+	// call with lb-go micro
 	{
 		i := map[string]interface{}{}
 		c := grpccli.NewClient()
-		req := newRequest("test_service", "/abc.d.Job/TriggerCreateRebate",
-			map[string]string{"name": "333"}, "application/json", RequestOptions{
+		req := newRequest("test_service", "/helloworld.Job/TriggerCreateRebate",
+			map[string]string{"name": "from lb-go micro"}, "application/json", RequestOptions{
 				ContentType: "application/json",
 				Stream:      false,
 				Context:     nil,

@@ -417,13 +417,25 @@ fn generate_unary<T: Method>(
         let fut = async move {
             let inner = inner.0;
             let method = #service_ident(inner);
-            let codec = #codec_name::default();
 
-            let mut grpc = tonic::server::Grpc::new(codec)
-                .apply_compression_config(accept_compression_encodings, send_compression_encodings);
+            let ct = req.headers().get("content-type").unwrap();
+            if (ct == "application/grpc"){
+                let codec = tonic::codec::ProstCodec::default();
 
-            let res = grpc.unary(method, req).await;
-            Ok(res)
+                let mut grpc = tonic::server::Grpc::new(codec)
+                    .apply_compression_config(accept_compression_encodings, send_compression_encodings);
+
+                let res = grpc.unary(method, req).await;
+                Ok(res)
+            } else {
+                let codec = crate::JsonCodec::default();
+
+                let mut grpc = tonic::server::Grpc::new(codec)
+                    .apply_compression_config(accept_compression_encodings, send_compression_encodings);
+
+                let res = grpc.unary(method, req).await;
+                Ok(res)
+            }
         };
 
         Box::pin(fut)

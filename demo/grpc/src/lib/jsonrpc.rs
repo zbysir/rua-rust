@@ -33,17 +33,17 @@ impl<S> tonic::codegen::Service<tonic::codegen::http::Request<Body>> for JsonRpc
             let json_req: JsonRpcReq = serde_json::from_slice(bytes.as_ref()).unwrap();
 
             let p = json_req.params[0].get();
-            let mut paramsStr = "\x00\x00\x00\x00".to_string();
+            let mut params_str = "\x00\x00\x00\x00".to_string();
             let l = p.len();
-            paramsStr.push(if l > u8::MAX as usize { 0 } else { l as u8 } as char);
-            paramsStr.push_str(&p.to_string());
-            println!("req: {:?}", paramsStr);
+            params_str.push(if l > u8::MAX as usize { 0 } else { l as u8 } as char);
+            params_str.push_str(&p.to_string());
+            println!("req: {:?}", params_str);
 
             let request: tonic::codegen::http::Request<tonic::transport::Body> = tonic::codegen::http::Request::builder()
                 .method("GET")
                 .uri("/helloworld.Job/TriggerCreateRebate")
                 .header("X-Custom-Foo", "Bar")
-                .body(tonic::transport::Body::from(paramsStr))
+                .body(tonic::transport::Body::from(params_str))
                 .unwrap();
 
             let response = (s).call(request).await;
@@ -64,14 +64,14 @@ impl<S> tonic::codegen::Service<tonic::codegen::http::Request<Body>> for JsonRpc
 
             println!("rsp_json: {:?}", rsp_json);
 
-            let rspBody = http_body::combinators::UnsyncBoxBody::new(tonic::transport::Body::from(rsp_json).
+            let rsp_body = http_body::combinators::UnsyncBoxBody::new(tonic::transport::Body::from(rsp_json).
                 map_err(|err| tonic::Status::ok("44")));
 
             Ok(tonic::codegen::http::Response::builder()
                 .status(200)
                 .header("grpc-status", "0")
                 .header("content-type", "application/json")
-                .body(rspBody)
+                .body(rsp_body)
                 .unwrap())
         })
     }
