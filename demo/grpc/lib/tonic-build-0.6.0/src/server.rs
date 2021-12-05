@@ -109,6 +109,20 @@ pub fn generate<T: Service>(
                     InterceptedService::new(Self::new(inner), interceptor)
                 }
 
+                fn match_uri(path: &str) -> (&str, &str) {
+                    let ss = path.split(".").collect::<Vec<&str>>();
+                    let mut ser_method: (&str, &str) = ("", "");
+                    if ss.len() > 1 {
+                        let sx: Vec<&str> = ss.last().unwrap().split("/").collect();
+                        ser_method = (sx[0], sx[1]);
+                    } else {
+                        let sx: Vec<&str> = ss[0].trim_start_matches("/").split("/").collect();
+                        ser_method = (sx[0], sx[1]);
+                    }
+
+                    ser_method
+                }
+
                 #configure_compression_methods
             }
 
@@ -128,8 +142,8 @@ pub fn generate<T: Service>(
 
                 fn call(&mut self, req: http::Request<B>) -> Self::Future {
                     let inner = self.inner.clone();
-
-                    match req.uri().path() {
+                    let (_, method) = JobServer::<T>::match_uri(req.uri().path());
+                    match method {
                         #methods
 
                         _ => Box::pin(async move {
@@ -323,14 +337,7 @@ fn generate_methods<T: Service>(
 
     for method in service.methods() {
         let path = format!(
-            "/{}{}{}/{}",
-            service.package(),
-            if service.package().is_empty() {
-                ""
-            } else {
-                "."
-            },
-            service.identifier(),
+            "{}",
             method.identifier()
         );
         let method_path = Lit::Str(LitStr::new(&path, Span::call_site()));

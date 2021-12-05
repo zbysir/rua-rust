@@ -5,6 +5,7 @@ use tonic::transport::Body;
 use hyper;
 use hyper::body::Bytes;
 
+/// JsonRpc 转换 jsonrpc 协议 为 grpc+json。让服务同时支持两种协议。
 pub struct JsonRpc<S> {
     servers: Vec<S>,
 }

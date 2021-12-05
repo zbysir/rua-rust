@@ -117,12 +117,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let greeter = ;
     let s = JobServer::new(MyGreeter::default());
 
-    let json = jsonrpc::JsonRpc::new(s.clone());
+    // let json = jsonrpc::JsonRpc::new(s.clone());
+    let router = grpc_router::ServiceRouter::new(s.clone());
 
     Server::builder()
         .accept_http1(true)
-        .add_service(json)
-        .add_service(s)
+        // .add_service(json)
+        .add_service(router)
+        // .add_service(s)
         .serve(addr)
         .await?;
 
@@ -133,6 +135,7 @@ use std::collections::HashMap;
 use std::future::Future;
 use std::sync::Arc;
 use serde::Serialize;
+use crate::lib::grpc_router;
 
 pub trait Caller<Req, Rsp> {
     fn call(&self, req: tonic::Request<Req>) -> BoxFuture<tonic::Response<Rsp>, tonic::Status>;

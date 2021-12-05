@@ -1,17 +1,17 @@
 use serde_derive::Deserialize;
 use config::{ConfigError, Config, File, Environment};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[derive(Deserialize)]
 struct Database {
     url: String,
 }
 
-#[derive(Debug)]
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize,Default)]
 struct Opt {
-    database: Database,
+    database: Option<Database>,
     debug: Option<bool>,
+    micro_registry_address:Option<bool>,
 }
 
 fn main() -> Result<(), ConfigError> {

@@ -45,7 +45,7 @@ func main() {
 		defer conn.Close()
 		var i HelloReply
 
-		err = conn.Invoke(context.Background(), "/helloworld.Job/TriggerCreateRebate", &HelloRequest{
+		err = conn.Invoke(context.Background(), "/.Job/TriggerCreateRebate", &HelloRequest{
 			Name: "from proto",
 		}, &i)
 		if err != nil {
@@ -60,7 +60,7 @@ func main() {
 	{
 		i := map[string]interface{}{}
 		c := grpccli.NewClient()
-		req := newRequest("test_service", "/helloworld.Job/TriggerCreateRebate",
+		req := newRequest("test_service", "/go.Job/TriggerCreateRebate",
 			map[string]string{"name": "from lb-go micro"}, "application/json", RequestOptions{
 				ContentType: "application/json",
 				Stream:      false,
